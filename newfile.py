@@ -1,4 +1,4 @@
-from google.generativeai
+import google.generativeai 
 from twitchio.ext import commands
 
 # Substitua pelas suas credenciais
