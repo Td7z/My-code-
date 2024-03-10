@@ -7,7 +7,7 @@ oauth_token = "oauth:sum22gpyyij84mvo5d33zh84jhvwy2"
 
 # Initialize the bot
 bot = commands.Bot(
-    irc_token=oauth_token,
+    token=oauth_token,
     client_id=client_id,
     nick="hawkinngx",
     prefix="!",
