@@ -1,5 +1,7 @@
-import google.generativeai 
+from google.generativeai import Completion
 from twitchio.ext import commands
+
+# Restante do código...
 
 # Substitua pelas suas credenciais
 client_id = "gp762nuuoqcoxypju8c569th9wz7q5"
