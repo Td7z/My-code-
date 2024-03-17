@@ -1,6 +1,6 @@
 import google.generativeai as genai
 
-genai.configure(api_key="sua-api-key")
+genai.configure(api_key="AIzaSyBa1IJ5GRXPRk3gPKAfjLExww67BJJArkU")
 
 def get_prompt_from_user():
   """Gets a prompt from the user."""
