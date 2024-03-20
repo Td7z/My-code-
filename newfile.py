@@ -3,8 +3,11 @@ import asyncio
 import youtube_dl
 import subprocess
 
+intents = discord.Intents.default()
+intents.voice_states = True
+
 # Ligação/conexão ao Bot
-client = discord.Client()
+client = discord.Client(intents=intents)
 
 @client.event
 async def on_ready():
