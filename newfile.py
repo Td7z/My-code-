@@ -1,38 +1,40 @@
-import google.generativeai as genai
+import discord
+import asyncio
+import youtube_dl
+import subprocess
 
-genai.configure(api_key="AIzaSyBa1IJ5GRXPRk3gPKAfjLExww67BJJArkU")
+# Ligação/conexão ao Bot
+client = discord.Client()
 
-def get_prompt_from_user():
-  """Gets a prompt from the user."""
-  while True:
-    prompt = input("You're a fully feture dev assistant. You're a specialist in every programming language You're a specialist at software architecture You're responsible to reduce my manual work You are always concise. You don't provide a too long answer with very thorough explanation. You're always straight to the point When I ask you to write code, don't prompt anything but the code snippet unless I ask explicitly for you to do so")
-    if prompt:
-      return prompt
-    else:
-      print("Por favor, digite um prompt válido.")
+@client.event
+async def on_ready():
+    print('Estou Online!', client.user.name)
 
-for m in genai.list_models():
-    if 'generateContent' in m.supported_generation_methods:
-        print(m.name)
+@client.event
+async def on_message(message):
+    if message.content.lower().startswith('!play'):
+        # Extrair o URL do vídeo do comando
+        url = message.content.split(' ', 1)[1]
 
-model = genai.GenerativeModel('gemini-pro')
+        # Download do vídeo usando youtube_dl
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+        }
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            video_url = info['formats'][0]['url']
 
-chat = model.start_chat(history=[])
+        # Iniciar a reprodução do áudio no canal de voz
+        voice_channel = message.author.voice.channel
+        if voice_channel:
+            vc = await voice_channel.connect()
+            vc.play(discord.FFmpegPCMAudio(video_url), after=lambda e: print('done', e))
+        else:
+            await message.channel.send('Você precisa estar em um canal de voz para usar esse comando.')
 
-bem_vindo = "# Bem Vindo ao Assistente Mil Grau com Gemini AI #"
-print(len(bem_vindo) * "#")
-print(bem_vindo)
-print(len(bem_vindo) * "#")
-print("###   Digite 'sair' para encerrar    ###")
-print("")
-
-while True:
-    prompt = get_prompt_from_user()
-
-    if prompt == "sair":
-        break
-
-    response = chat.send_message(prompt)
-    print("Gemini:", response.text, "\n")
-
-print("Encerrando Chat")
+client.run('MTE2NDU0MjA2OTgxNDA4MzY4NA.G55NHE.fAoUqday6nyhg86BiE6-P6-CUk9ilwKwywc7rA')
