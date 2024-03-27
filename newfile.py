@@ -1,13 +1,9 @@
 import discord
-import asyncio
+import ffmpeg
 import youtube_dl
-import subprocess
+import asyncio
 
-intents = discord.Intents.default()
-intents.voice_states = True
-
-# Ligação/conexão ao Bot
-client = discord.Client(intents=intents)
+client = discord.Client()
 
 @client.event
 async def on_ready():
@@ -28,16 +24,28 @@ async def on_message(message):
                 'preferredquality': '192',
             }],
         }
+
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             video_url = info['formats'][0]['url']
 
-        # Iniciar a reprodução do áudio no canal de voz
-        voice_channel = message.author.voice.channel
-        if voice_channel:
-            vc = await voice_channel.connect()
-            vc.play(discord.FFmpegPCMAudio(video_url), after=lambda e: print('done', e))
-        else:
-            await message.channel.send('Você precisa estar em um canal de voz para usar esse comando.')
+        # Conectar ao canal de voz do usuário
+        if message.author.voice is None:
+            await message.channel.send("Você precisa estar em um canal de voz para usar este comando.")
+            return
 
-client.run('MTE2NDU0MjA2OTgxNDA4MzY4NA.G55NHE.fAoUqday6nyhg86BiE6-P6-CUk9ilwKwywc7rA')
+        voice_channel = message.author.voice.channel
+        voice_client = await voice_channel.connect()
+
+        # Tocar o áudio
+        source = discord.FFmpegPCMAudio(video_url)
+        voice_client.play(source)
+
+        # Aguardar o término da reprodução
+        while voice_client.is_playing():
+            await asyncio.sleep(1)
+
+        # Desconectar do canal de voz
+        await voice_client.disconnect()
+
+client.run('MTE2NDU0MjA2OTgxNDA4MzY4NA.GF7m8h.tUyVYIzcGkivklLYXol591-qW9j8kmu9LGli58')
