@@ -1,6 +1,7 @@
 import twitchio
 from twitchio.ext import commands
 import google.generativeai as genai
+import speech_recognition as sr
 
 # Configure Gemini AI
 genai.configure(api_key="AIzaSyBa1IJ5GRXPRk3gPKAfjLExww67BJJArkU")
@@ -22,21 +23,37 @@ bot = commands.Bot(
     client_id='gp762nuuoqcoxypju8c569th9wz7q5',
     nick='hawkinngx',
     prefix='!',
-    initial_channels=['rodrigues_rc']
+    initial_channels=['hawkinngx']
 )
 
-def cut_message(message, max_length=499):
-    """Cuts the message to the specified maximum length."""
-    if len(message) > max_length:
-        return message[:max_length] + "..."
-    else:
-        return message
+# Function to handle voice input
+def listen_and_ask_gemini():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Say 'ok Gemini' followed by your question:")
+        audio = r.listen(source)
 
+    try:
+        text = r.recognize_google(audio)
+        if text.startswith("ok Gemini"):
+            question = text.replace("ok Gemini", "").strip()
+            response = chat.send_message(question)
+            print(f"Gemini: {response.text}")
+        else:
+            print("Didn't hear 'ok Gemini' at the beginning.")
+    except sr.UnknownValueError:
+        print("Could not understand audio")
+    except sr.RequestError as e:
+        print(f"Could not request results from speech recognition service; {e}")
+
+# Command for manual text input
 @bot.command(name='gemini')
 async def gemini_question(ctx, *, question):
     response = chat.send_message(question)
-    # Cut the response to 499 characters
-    shortened_response = cut_message(response.text)
-    await ctx.send(f"Gemini: {shortened_response}")
+    await ctx.send(f"Gemini: {response.text}")
 
+# Start listening for voice input
+listen_and_ask_gemini()
+
+# Run the Twitch bot
 bot.run()
