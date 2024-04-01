@@ -1,7 +1,7 @@
 import twitchio
 from twitchio.ext import commands
 import google.generativeai as genai
-import speech_recognition as sr
+import speech_recognition as sr  # Example speech recognition library
 
 # Configure Gemini AI
 genai.configure(api_key="AIzaSyBa1IJ5GRXPRk3gPKAfjLExww67BJJArkU")
@@ -11,7 +11,6 @@ for m in genai.list_models():
     if 'generateContent' in m.supported_generation_methods:
         model_name = m.name
         break  # Use the first suitable model
-
 model = genai.GenerativeModel(model_name)
 
 # Start Gemini chat globally
@@ -26,34 +25,22 @@ bot = commands.Bot(
     initial_channels=['hawkinngx']
 )
 
-# Function to handle voice input
-def listen_and_ask_gemini():
-    r = sr.Recognizer()
-    with sr.Microphone() as source:
-        print("Say 'ok Gemini' followed by your question:")
-        audio = r.listen(source)
+# Speech recognition setup
+recognizer = sr.Recognizer()
 
-    try:
-        text = r.recognize_google(audio)
-        if text.startswith("ok Gemini"):
-            question = text.replace("ok Gemini", "").strip()
+@bot.event
+async def event_message(ctx):
+    if ctx.content.lower() == "ok gpt":
+        await ctx.send("Faça sua pergunta:")
+        try:
+            with sr.Microphone() as source:
+                audio = recognizer.listen(source)
+            question = recognizer.recognize_google(audio, language="pt-BR")
             response = chat.send_message(question)
-            print(f"Gemini: {response.text}")
-        else:
-            print("Didn't hear 'ok Gemini' at the beginning.")
-    except sr.UnknownValueError:
-        print("Could not understand audio")
-    except sr.RequestError as e:
-        print(f"Could not request results from speech recognition service; {e}")
+            await ctx.send(f"Gemini: {response.text}")
+        except sr.UnknownValueError:
+            await ctx.send("Não entendi a pergunta.")
+        except sr.RequestError as e:
+            await ctx.send(f"Erro ao processar a pergunta: {e}")
 
-# Command for manual text input
-@bot.command(name='gemini')
-async def gemini_question(ctx, *, question):
-    response = chat.send_message(question)
-    await ctx.send(f"Gemini: {response.text}")
-
-# Start listening for voice input
-listen_and_ask_gemini()
-
-# Run the Twitch bot
 bot.run()
